@@ -15,6 +15,7 @@ npm-debug.log
 .settings
 .idea/*
 *.iml
+.vscode
 
 # Windows
 Thumbs.db
