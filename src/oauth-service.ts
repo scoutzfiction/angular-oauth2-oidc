@@ -477,9 +477,8 @@ export class OAuthService {
     };
 
     createAndSaveNonce() {
-        var that = this;
         return this.createNonce().then( (nonce: any) =>{
-            that._storage.setItem("nonce", nonce);
+            this._storage.setItem("nonce", nonce);
             return nonce;
         })
 
