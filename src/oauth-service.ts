@@ -179,11 +179,10 @@ export class OAuthService {
 
     
     createLoginUrl(state) {
-        var that = this;
 
         if (typeof state === "undefined") { state = ""; }
 
-        return this.createAndSaveNonce().then(function (nonce: any) {
+        return this.createAndSaveNonce().then((nonce: any) => {
 
             if (state) {
                 state = nonce + ";" + state;
@@ -194,27 +193,27 @@ export class OAuthService {
 
             var response_type = "token";
 
-            if (that.oidc) {
+            if (this.oidc) {
                 response_type = "id_token+token";
             }
 
-            var url = that.loginUrl 
+            var url = this.loginUrl 
                         + "?response_type="
                         + response_type
                         + "&client_id=" 
-                        + encodeURIComponent(that.clientId)
+                        + encodeURIComponent(this.clientId)
                         + "&state=" 
                         + encodeURIComponent(state)
                         + "&redirect_uri=" 
-                        + encodeURIComponent(that.redirectUri) 
+                        + encodeURIComponent(this.redirectUri) 
                         + "&scope=" 
-                        + encodeURIComponent(that.scope);
+                        + encodeURIComponent(this.scope);
 
-            if (that.resource) {
-                url += "&resource=" + encodeURIComponent(that.resource);
+            if (this.resource) {
+                url += "&resource=" + encodeURIComponent(this.resource);
             }
             
-            if (that.oidc) {
+            if (this.oidc) {
                 url += "&nonce=" + encodeURIComponent(nonce);
             }
             
@@ -223,23 +222,22 @@ export class OAuthService {
     };
 
     initImplicitFlow(additionalState = "") {
-        this.createLoginUrl(additionalState).then(function (url) {
+        this.createLoginUrl(additionalState).then((url) => {
             location.href = url;
         })
-        .catch(function (error) {
+        .catch( (error) =>{
             console.error("Error in initImplicitFlow");
             console.error(error);
         });
     };
     
     callEventIfExists(options: any) {
-        var that = this;
         if (options.onTokenReceived) {
             var tokenParams = { 
-                idClaims: that.getIdentityClaims(),
-                idToken: that.getIdToken(),
-                accessToken: that.getAccessToken(),
-                state: that.state
+                idClaims: this.getIdentityClaims(),
+                idToken: this.getIdToken(),
+                accessToken: this.getAccessToken(),
+                state: this.state
             };
             options.onTokenReceived(tokenParams);
         }
@@ -309,7 +307,7 @@ export class OAuthService {
                 .then(() => {
                     this.callEventIfExists(options);
                 })
-                .catch(function(reason) {
+                .catch((reason) => {
                     console.error('Error validating tokens');
                     console.error(reason);
                 })
@@ -480,7 +478,7 @@ export class OAuthService {
 
     createAndSaveNonce() {
         var that = this;
-        return this.createNonce().then(function (nonce: any) {
+        return this.createNonce().then( (nonce: any) =>{
             that._storage.setItem("nonce", nonce);
             return nonce;
         })
