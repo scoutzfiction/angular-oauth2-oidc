@@ -1,11 +1,12 @@
 {
   "name": "angular-oauth2-oidc",
-  "version": "1.0.15",
+  "version": "1.0.17",
   "scripts": {
     "lint": "tslint src/**/*.ts",
     "test": "tsc && karma start",
-    "prepublish": "tsc",
-    "tsc": "tsc"
+    "prepublish": "ngc",
+    "tsc": "tsc",
+    "ngc": "ngc"
   },
   "repository": {
     "type": "git",
