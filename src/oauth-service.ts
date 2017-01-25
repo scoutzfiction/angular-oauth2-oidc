@@ -1,7 +1,7 @@
 import {Base64} from 'js-base64';
 import {fromByteArray} from 'base64-js';
 import * as _sha256 from 'sha256';
-import { URLSearchParams, Headers } from '@angular/http';
+import { URLSearchParams, Headers, Http } from '@angular/http';
 import { Injectable } from '@angular/core';
 import { Observable, Observer } from 'rxjs';
 
@@ -40,7 +40,7 @@ export class OAuthService {
     
     private _storage: Storage = localStorage;
 
-    constructor() {
+    constructor(private http: Http) {
         this.discoveryDocumentLoaded$ = Observable.create(sender => {
             this.discoveryDocumentLoadedSender = sender;
         }).publish().connect();
@@ -54,7 +54,7 @@ export class OAuthService {
                 fullUrl = this.issuer + '/.well-known/openid-configuration';
             }
 
-            this.get(fullUrl).then(
+            this.http.get(fullUrl).map(r => r.json()).subscribe(
                 (doc) => {
 
                     this.loginUrl = doc.authorization_endpoint;
@@ -92,7 +92,7 @@ export class OAuthService {
             let headers = new Headers();
             headers.set('Authorization', 'Bearer ' + this.getAccessToken());
 
-            this.get(this.userinfoEndpoint, { headers }).then(
+            this.http.get(this.userinfoEndpoint, { headers }).map(r => r.json()).subscribe(
                 (doc) => {
                     console.debug('userinfo received', doc);
                     this._storage.setItem('id_token_claims_obj', JSON.stringify(doc));
@@ -127,7 +127,7 @@ export class OAuthService {
 
             let params = search.toString();
 
-            this.post(this.tokenEndpoint, params, { headers }).then(
+            this.http.post(this.tokenEndpoint, params, { headers }).map(r => r.json()).subscribe(
                 (tokenResponse) => {
                     console.debug('tokenResponse', tokenResponse);
                     this.storeAccessTokenResponse(tokenResponse.access_token, tokenResponse.refresh_token, tokenResponse.expires_in);
@@ -162,7 +162,7 @@ export class OAuthService {
 
             let params = search.toString();
 
-            this.post(this.tokenEndpoint, params, { headers }).then(
+            this.http.post(this.tokenEndpoint, params, { headers }).map(r => r.json()).subscribe(
                 (tokenResponse) => {
                     console.debug('refresh tokenResponse', tokenResponse);
                     this.storeAccessTokenResponse(tokenResponse.access_token, tokenResponse.refresh_token, tokenResponse.expires_in);
@@ -174,7 +174,6 @@ export class OAuthService {
                 }
             );
         });
-
     }
 
     
@@ -572,57 +571,4 @@ export class OAuthService {
         
         return (atHash == claimsAtHash);
     }
-
-    private get(url: string, options?: { headers: Headers }): Promise<any> {
-        return this.request({
-            url: url,
-            method: 'GET',
-            options:options
-        });
-    }
-
-    private post(url: string, params: any, options?: { headers: Headers }): Promise<any> {
-        return this.request({
-            url: url, 
-            method: 'POST',
-            params: params,
-            options:options
-        });
-    }
-
-    private request(context: {
-        url: string,
-        method: string,
-        params?: any,
-        options?: { headers: Headers }
-    }): Promise<any> {
-        return new Promise((resolve, reject) => {
-            var req = new XMLHttpRequest();
-            req.open(context.method, context.url);
-            if (context.options) {
-                context.options.headers.keys().forEach((key: string) => {
-                    req.setRequestHeader(key, context.options.headers.get(key));
-                });
-            }
-
-            req.onload = () => {
-                if (req.status === 200) {
-                    resolve(JSON.parse(req.responseText));
-                }
-                else {
-                    reject(Error(`${req.statusText} (${req.status})`));
-                }
-            };
-
-            req.onerror = () => {
-                reject(Error('Network Error'));
-            };
-
-            if (context.params)
-                req.send(context.params);
-            else
-                req.send();
-        });
-    }
-    
 }
